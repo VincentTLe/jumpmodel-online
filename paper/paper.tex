@@ -83,7 +83,7 @@ At $\lambda = 0$, $D_t = g_t$ directly and $\hat{s}_t = \ind\{g_t > 0\}$. Theore
 Fix $\lambda > 0$ and $t \ge W \ge 1$. Let $u_j$ and $v_j$ denote the carried-score and rolling-$W$ states over $j \in \{t-W, \dots, t\}$, initialized at $u_{t-W} = y_{t-W}^{\mathrm{car}} \in [-\lambda, \lambda]$ and $v_{t-W} = 0$.
 \begin{enumerate}
   \item \textbf{(Monotone contraction and exact coalescence)} For all $j \in \{t-W+1, \dots, t\}$, $|u_j - v_j| \le |u_{j-1} - v_{j-1}| \le \lambda$. Moreover, if $u_{t-W} \ge 0$ and at some step $j$ in the window either $v_{j-1} + g_j \ge \lambda$ or $u_{j-1} + g_j \le -\lambda$ (symmetrically if $u_{t-W} \le 0$), then $u_j = v_j$ and hence $y_t^{\mathrm{car}} = y_t^{(W)}$, so both decoders emit the exact same state at time $t$.
-  \item \textbf{(Short-window doubling trap)} Let $g_t \in \{-1, +1\}$ repeat the $8$-step cycle $(-,-,-,+,-,+,+,+)$ and set $W = 7$. Increasing the penalty from $\lambda = 1.5$ to $\lambda = 2.5$ reduces the number of internal jumps inside every fitted $7$-step window from $6$ per cycle to $0$, yet \emph{doubles} the rolling-$7$ emitted switching rate from $2/8$ ($25\%$) to $4/8$ ($50\%$), whereas carried-score decoding switches only $2/8$ ($25\%$) per cycle.
+  \item \textbf{(Short-window doubling trap)} Let $g_t \in \{-1, +1\}$ repeat the $8$-step cycle $(-,-,-,+,\allowbreak -,+,+,+)$ and set $W = 7$. Increasing the penalty from $\lambda = 1.5$ to $\lambda = 2.5$ reduces internal jumps inside every fitted $7$-step window from $6$ per cycle to $0$, yet \emph{doubles} the rolling-$7$ emitted switching rate from $2/8$ ($25\%$) to $4/8$ ($50\%$), whereas carried-score decoding switches only $2/8$ ($25\%$) per cycle.
 \end{enumerate}
 \end{theorem}
 
@@ -118,7 +118,7 @@ Let $\lambda > 0$ and $\Delta = \frac{1}{2}\|\mu_1 - \mu_0\|_2^2 > 0$.
     d_{1\to 0}(\lambda) \;=\; \max\!\left(1,\, \left\lceil \frac{\lambda}{\Delta} \right\rceil\right).
     \label{eq:d10}
   \end{equation}
-  \item For any integer delay budget $B \ge 1$, the worst-case step-response delay satisfies $\max\{d_{0\to 1}(\lambda), d_{1\to 0}(\lambda)\} \le B$ if and only if
+  \item For any integer delay budget $B \ge 1$, the worst-case step-response delay satisfies $\max\{d_{0\to 1}(\lambda),\allowbreak\, d_{1\to 0}(\lambda)\} \le B$ if and only if
   \begin{equation}
     \lambda \;<\; B \cdot \Delta.
     \label{eq:budget}

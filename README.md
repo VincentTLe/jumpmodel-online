@@ -1,36 +1,56 @@
 # `jm-online` — Streaming Inference & Label-Free Penalty Calibration for Statistical Jump Models
 
-Một thư viện Python nhỏ gọn (~450 dòng mã nguồn cốt lõi, **chỉ phụ thuộc `numpy`**) bổ sung trực tiếp hai mảnh ghép còn khuyết cho hệ sinh thái [`Yizhan-Oliver-Shu/jump-models`](https://github.com/Yizhan-Oliver-Shu/jump-models):
+[![CI](https://github.com/VincentTLe/jumpmodel-online/actions/workflows/ci.yml/badge.svg)](https://github.com/VincentTLe/jumpmodel-online/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](pyproject.toml)
 
-1. **Giải mã streaming từng bước thời gian thực (`step(x_t)`) & So sánh `Carried-Score` vs. `Rolling-W`:**
-   - Trong `jumpmodels`, hàm `predict_online(X)` tích lũy chi phí quy hoạch động từ $t = 0$ đến vô cùng (`carried`), trong khi nhiều bài báo thực nghiệm lại trượt một cửa sổ cố định $W$ quan sát rồi lấy nhãn cuối (`rolling-W`).
-   - `OnlineJumpDecoder` hỗ trợ cả hai chế độ ở dạng streaming từng điểm dữ liệu với bộ nhớ $O(K)$, tương thích 100% với cả `JumpModel` lẫn `SparseJumpModel` của Shu, và không bắt cài `matplotlib` hay `scikit-learn` (giải quyết trực tiếp Issue #5 của `jump-models` trên Python 3.13+).
-2. **Chọn mức phạt `jump_penalty` ($\lambda$) theo Ngân sách Độ trễ — Không cần nhãn thật, không cần backtest lợi nhuận:**
-   - Thay vì chọn mò `jump_penalty = 50.0` hoặc tối ưu hóa lợi nhuận lịch sử dễ bị overfit, `jm-online` chuẩn hóa $\lambda = \eta \cdot s_{\text{loss}}$ (theo trung vị chênh lệch mất mát trên tập huấn luyện) và tính **độ trễ phản ứng bậc thang xấu nhất** $d_{\max}(\lambda)$ (mở rộng trực tiếp định lý trong [`../core-theory-reference/Delay.lean`](../core-theory-reference/Delay.lean) sang không gian đặc trưng thực).
-   - Người vận hành chỉ cần đặt ngân sách độ trễ vật lý chấp nhận được (ví dụ: $\le 5$ phút cho điều hòa tòa nhà, $\le 4$ giờ cho cảnh báo bụi mịn, $\le 3$ ngày cho cảnh báo rủi ro biến động), hàm `select_penalty_by_delay_budget()` sẽ tự động chọn $\lambda$ giảm tối đa dao động nhấp nháy giả.
+`jm-online` is a lightweight Python library (~450 lines of core source code, **requiring only `numpy`**) that addresses two practical gaps in real-time deployments of Statistical Jump Models and the [`Yizhan-Oliver-Shu/jump-models`](https://github.com/Yizhan-Oliver-Shu/jump-models) ecosystem:
+
+1. **Step-by-Step Streaming Inference (`step(x_t)`) & Carried-vs-Rolling Diagnostics:**
+   - In `jumpmodels`, `predict_online(X)` propagates forward dynamic-programming arrival costs indefinitely from $t = 0$ (`carried` mode), whereas empirical papers often re-solve a sliding window of $W$ observations from scratch and emit its final state (`rolling` mode).
+   - `OnlineJumpDecoder` supports both modes in stateful step-by-step streaming ($O(K^2)$ time and $O(K)$ memory per step for `carried`), wraps fitted `JumpModel` and `SparseJumpModel` objects directly via `OnlineJumpDecoder.from_jumpmodel(model)`, and requires neither `matplotlib` nor `scikit-learn` for core inference.
+2. **Label-Free `jump_penalty` ($\lambda$) Calibration via Detection-Delay Budgets:**
+   - Instead of hardcoding `jump_penalty = 50.0` or tuning $\lambda$ on historical trading returns (which is inapplicable outside finance and prone to overfitting), `jm-online` normalizes $\lambda = \eta \cdot s_{\text{loss}}$ by the median training loss gap and computes exact **worst-case step-response delays** $d_{\max}(\lambda)$.
+   - Operators specify a physical **delay budget** $B$ (e.g., $\le 5$ minutes for room HVAC control, $\le 4$ hours for urban smog advisories, or $\le 3$ trading days for market volatility risk alerts), and `select_penalty_by_delay_budget()` automatically selects the penalty within $\lambda < B\Delta$ that minimizes false switching churn—using **zero ground-truth regime labels**.
+
+See **[`PROOFS.md`](PROOFS.md)** for a plain-English intuition and self-contained one-page proofs of all three underlying theorems, and **[`paper/paper.pdf`](paper/paper.pdf)** for the full manuscript.
 
 ---
 
-## Cấu trúc thư mục (đọc hết toàn bộ code trong 15 phút)
+## Repository Layout
 
 ```text
 jumpmodel-online/
-  pyproject.toml                 ← Cấu hình gói chuẩn (chỉ cần numpy>=1.24)
+  pyproject.toml                 # Package metadata (core dependency: numpy>=1.24)
+  PROOFS.md                      # Plain-English intuition & one-page mathematical proofs
+  paper/
+    paper.tex                    # LaTeX source of the companion paper
+    paper.pdf                    # Compiled 8-page manuscript
   src/jm_online/
-    decoder.py                   ← Bộ giải mã streaming/rolling/offline & bộ fit JM thuần NumPy
-    diagnostics.py               ← Độ trễ bậc thang, chọn λ theo độ trễ, so sánh Carried vs. Rolling-W
-    plotting.py                  ← Vẽ đường cong Pareto Độ trễ – Tần suất nhảy (nạp matplotlib khi gọi)
+    decoder.py                   # Streaming/rolling/offline decoders & pure-NumPy JM fitter
+    diagnostics.py               # Step-response delay bounds, delay-budget selector, Carried vs. Rolling-W
+    plotting.py                  # Latency-Churn Pareto & Carried-vs-Rolling plots (lazy matplotlib import)
   examples/
-    run_real_benchmarks.py       ← Chạy thực nghiệm trên 3 bộ dữ liệu cảm biến & rủi ro công khai
+    run_real_benchmarks.py       # Auto-downloads public UCI/FRED datasets and reproduces all benchmarks
   tests/
-    test_jm_online.py            ← Kiểm thử khớp 100% với công thức của Shu & các định lý/phản ví dụ Lean
-  data/                          ← Dữ liệu công khai (UCI Occupancy CC-BY-4.0, UCI Beijing PM2.5 CC-BY-4.0, FRED VIX)
-  outputs/                       ← Bảng tổng hợp CSV/JSON và 6 biểu đồ PNG
+    test_jm_online.py            # Unit tests verifying exact parity with `jumpmodels` and theoretical bounds
+  outputs/                       # Reproduced CSV/JSON tables and benchmark figures
 ```
 
 ---
 
-## Cách dùng nhanh (Quickstart)
+## Installation
+
+```bash
+git clone https://github.com/VincentTLe/jumpmodel-online.git
+cd jumpmodel-online
+pip install -e .          # Core inference & diagnostics (numpy only)
+pip install -e ".[dev]"   # Include pytest, pandas, and matplotlib for benchmarks/plots
+```
+
+---
+
+## Quickstart
 
 ```python
 from jm_online import (
@@ -41,49 +61,53 @@ from jm_online import (
     select_penalty_by_delay_budget,
 )
 
-# 1. Fit tâm cụm trên tập huấn luyện (hoặc bọc trực tiếp model đã fit từ `jumpmodels` bằng `OnlineJumpDecoder.from_jumpmodel(jm)`)
+# 1. Fit centroids on training data (or wrap an existing `jumpmodels` estimator via `OnlineJumpDecoder.from_jumpmodel(jm)`)
 fit = fit_jump_model(X_train, n_components=2, jump_penalty=2.0, random_state=42)
 
-# 2. Chọn mức phạt lambda tự động theo ngân sách độ trễ <= 4 bước (không cần nhãn y!)
+# 2. Select jump_penalty automatically under a worst-case step-response delay budget <= 4 steps (no labels needed)
 curve = evaluate_penalty_curve(X_train, fit.centers_)
 chosen = select_penalty_by_delay_budget(curve, max_delay_steps=4)
 
-# 3. Giải mã thời gian thực từng quan sát mới (O(K^2) thời gian, O(K) bộ nhớ)
+# 3. Stream live observations one at a time in O(K^2) time and O(K) memory
 decoder = OnlineJumpDecoder(fit.centers_, jump_penalty=chosen.jump_penalty)
 for x_t in X_live_stream:
     state_t = decoder.step(x_t, mode="carried")
 
-# 4. Kiểm tra xem cửa sổ trượt độ dài W có bị nhảy giả so với predict_online không
+# 4. Diagnose whether a rolling window of length W introduces reset-induced extra switches
 rows = compare_carried_vs_rolling(X_live_stream, fit.centers_, chosen.jump_penalty, windows=[7, 15, 63, 168])
 ```
 
 ---
 
-## Kết quả thực nghiệm trên 3 bài toán giám sát thực tế (Out-of-Sample)
+## Out-of-Sample Empirical Benchmarks
 
-Chạy lại toàn bộ bằng:
-```powershell
-python -m pytest -v
-python examples\run_real_benchmarks.py
+Reproduce all tests, tables, and figures in ~15 seconds (public datasets are downloaded automatically on first run):
+
+```bash
+pytest -v
+python examples/run_real_benchmarks.py
 ```
 
-### 1. Hiệu quả của bộ chọn $\lambda$ không nhãn (Label-Free Delay-Budget Calibration)
+### 1. Label-Free Delay-Budget Penalty Calibration (`carried` online decoding)
 
-| Bài toán thực tế | Tập Train | Tập Test (chưa từng xem) | Ngân sách độ trễ đặt trước | $\eta$ được chọn ($\lambda$) | Số lần nhảy khi $\lambda=0$ | Số lần nhảy với $\lambda$ đã chọn | Giảm nhấp nháy giả | Ý nghĩa vật lý trên tập Test |
+| Monitoring Benchmark | Train Rows | Out-of-Sample Test Rows | Delay Budget $B$ | Selected $\eta$ ($\lambda$) | $\lambda=0$ Switches | Selected Switches | Churn Reduction | Out-of-Sample Physical / Held-Out Audit |
 |---|---:|---:|---|---:|---:|---:|---:|---|
-| **Cảm biến phòng / HVAC** *(UCI Occupancy, 1 phút/mẫu)* | 8,143 | 12,417 | $\le 5$ phút | `4.0` (`20.38`) | 54 *(6.26/ngày)* | **14** *(1.62/ngày)* | **−74.1%** | Độ chính xác không giám sát so với camera giữ kín đạt **83.92%**, độ trễ thực tế trung vị khi có người bước vào phòng là **1.0 phút**. |
-| **Cảnh báo ô nhiễm bụi mịn** *(UCI Beijing PM2.5, 1 giờ/mẫu)* | 26,275 | 17,520 | $\le 4$ giờ | `4.0` (`11.14`) | 831 *(34.65/tháng)* | **281** *(11.72/tháng)* | **−66.2%** | Tách rõ chế độ không khí sạch (trung vị **28 $\mu\text{g/m}^3$**) và đợt mù khói độc hại (trung vị **112 $\mu\text{g/m}^3$**). |
-| **Giám sát rủi ro biến động** *(FRED CBOE VIX, 1 ngày/mẫu)* | 4,265 *(1990–2006)* | 5,038 *(2007–2026)* | $\le 3$ phiên | `3.0` (`4.65`) | 259 *(12.96/năm)* | **65** *(3.25/năm)* | **−74.9%** | Tách chế độ thị trường êm (trung vị VIX **13.5**) và chế độ căng thẳng (trung vị VIX **19.1**) qua 20 năm ngoài mẫu. |
+| **Smart-Building HVAC Sensors** *(UCI Occupancy, 1-min)* | 8,143 | 12,417 | $\le 5$ min | `4.0` (`20.38`) | 54 *(6.26/day)* | **14** *(1.62/day)* | **−74.1%** | **83.92%** unsupervised accuracy vs. held-out camera ground truth; **1.0-min** median arrival lag. |
+| **Urban Air-Quality Smog Alerts** *(UCI Beijing PM2.5, 1-hr)* | 26,275 | 17,520 | $\le 4$ hr | `4.0` (`11.14`) | 831 *(34.65/mo)* | **281** *(11.72/mo)* | **−66.2%** | Cleanly separates ventilated air (median **28 $\mu\text{g/m}^3$**) from smog episodes (median **112 $\mu\text{g/m}^3$**). |
+| **Market Volatility Stress Monitor** *(FRED CBOE VIX, 1-day)* | 4,265 *(1990–2006)* | 5,038 *(2007–2026)* | $\le 3$ days | `3.0` (`4.65`) | 259 *(12.96/yr)* | **65** *(3.25/yr)* | **−74.9%** | Separates calm markets (median VIX **13.5**) from stress regimes (median VIX **19.1**) over 20 out-of-sample years. |
 
-### 2. Xác nhận thực nghiệm hiện tượng Toán học: `Carried-Score` (`predict_online`) vs. `Rolling-W`
+![Beijing PM2.5 Pareto Calibration](outputs/pm25_pareto.png)
 
-Đúng như dự đoán từ lý thuyết điểm tích lũy bị chặn (`Model.lean` & phản ví dụ cửa sổ trượt):
-- **Khi cửa sổ $W$ ngắn ($W = 7$):** Do mất trí nhớ mỗi khi khởi tạo lại đầu cửa sổ, `Rolling-7` tự sinh thêm **+14 cú nhảy thừa** trên cảm biến tòa nhà (`24` vs `10`), **+190 cú nhảy cảnh báo thừa** trên cảm biến bụi mịn Bắc Kinh (`471` vs `281`), và **+46 cú nhảy thừa** trên VIX (`111` vs `65`).
-- **Khi cửa sổ $W$ vượt ngưỡng bão hòa (*coalescence*):** Đến $W = 127$ phút (Occupancy), $W = 168$ giờ (PM2.5) và $W = 63$ ngày (VIX), xác suất bất đồng giữa `Rolling-W` và `Carried-Score` giảm về **đúng 0.00%** — chứng minh rằng bộ giải mã streaming `Carried-Score` với bộ nhớ $O(1)$ cho kết quả giống hệt cửa sổ trượt dài mà không tốn chi phí tính lại lịch sử và không bao giờ dính bẫy nhảy giả của cửa sổ ngắn.
+### 2. Carried-Score (`predict_online`) vs. Rolling-Window (`rolling-W`) Inference
+
+Consistent with **Theorem 2** in [`PROOFS.md`](PROOFS.md):
+- **Short windows ($W = 7$) inflate false switching:** Resetting the window score to zero at every step produces **+14 extra switches** on UCI Building Test 2 (`24` vs. `10`), **+190 extra switches** on Beijing PM2.5 (`471` vs. `281`), and **+46 extra switches** on CBOE VIX (`111` vs. `65`).
+- **Exact coalescence at moderate windows:** Once $W$ exceeds the empirical barrier-hitting horizon ($W \ge 127$ min on Occupancy, $W \ge 168$ hr on PM2.5, and $W \ge 63$ days on VIX), disagreement between `rolling-W` and `carried` drops to **identically 0.00%**, confirming that $O(1)$-memory carried-score streaming achieves the same output without window-recomputation overhead or short-window instability.
+
+![Beijing PM2.5 Carried vs Rolling](outputs/pm25_carried_vs_rolling.png)
 
 ---
 
-## Hướng phát triển & Công bố tiếp theo
+## License
 
-1. **Đóng góp mã nguồn mở / Bài báo phần mềm (JOSS):** Đưa thư mục `jumpmodel-online` lên một repo GitHub công khai độc lập (có GitHub Actions chạy `pytest`, ví dụ notebook tương tác với `jumpmodels`), hoặc mở Issue/PR trao đổi trực tiếp với tác giả `Yizhan-Oliver-Shu/jump-models`. Sau khi duy trì mở đủ chuẩn lịch sử phát triển, có thể nộp lên *Journal of Open Source Software (JOSS)*.
-2. **Bài báo ngắn Toán ứng dụng & Thống kê (SIURO / arXiv):** Kết hợp 3 định lý cốt lõi trong [`../core-theory-reference/`](../core-theory-reference/) với công thức độ trễ bậc thang tổng quát và thực nghiệm cảm biến ở trên thành một bài báo 8 trang cực gọn — không phụ thuộc vào dữ liệu tài chính trả phí và hoàn toàn tái lập 100%.
+Released under the [MIT License](LICENSE).

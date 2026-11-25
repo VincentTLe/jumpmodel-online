@@ -1,0 +1,202 @@
+[
+  {
+    "domain": "UCI Building Occupancy Sensors (1-min)",
+    "train_rows": 8143,
+    "test_rows": 12417,
+    "delay_budget": "5 minutes",
+    "loss_scale": 5.0941,
+    "selected_eta": 4.0,
+    "selected_lambda": 20.3766,
+    "guaranteed_worst_delay_min": 5,
+    "test_switches_unpenalized": 54,
+    "test_switches_selected": 14,
+    "test_switches_per_day_unpenalized": 6.26,
+    "test_switches_per_day_selected": 1.62,
+    "heldout_camera_accuracy_unpenalized_pct": 86.45,
+    "heldout_camera_accuracy_selected_pct": 83.92,
+    "median_empirical_entry_lag_min_unpenalized": 1.0,
+    "median_empirical_entry_lag_min_selected": 1.0,
+    "carried_vs_rolling_test2": [
+      {
+        "window": 7,
+        "carried_switches": 10,
+        "rolling_switches": 24,
+        "extra_rolling_switches": 14,
+        "disagreement_rate": 0.025123051681706317,
+        "saturation_horizon_est": 12
+      },
+      {
+        "window": 15,
+        "carried_switches": 10,
+        "rolling_switches": 20,
+        "extra_rolling_switches": 10,
+        "disagreement_rate": 0.018867924528301886,
+        "saturation_horizon_est": 12
+      },
+      {
+        "window": 31,
+        "carried_switches": 10,
+        "rolling_switches": 18,
+        "extra_rolling_switches": 8,
+        "disagreement_rate": 0.010151763740771124,
+        "saturation_horizon_est": 12
+      },
+      {
+        "window": 63,
+        "carried_switches": 10,
+        "rolling_switches": 10,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0025635767022149304,
+        "saturation_horizon_est": 12
+      },
+      {
+        "window": 127,
+        "carried_switches": 10,
+        "rolling_switches": 10,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 12
+      },
+      {
+        "window": 255,
+        "carried_switches": 10,
+        "rolling_switches": 10,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 12
+      }
+    ]
+  },
+  {
+    "domain": "Beijing Hourly Air-Quality Sensors (2010\u20132014)",
+    "train_rows": 26275,
+    "test_rows": 17520,
+    "delay_budget": "4 hours",
+    "loss_scale": 2.7857,
+    "selected_eta": 4.0,
+    "selected_lambda": 11.1428,
+    "guaranteed_worst_delay_hours": 4,
+    "test_switches_unpenalized": 831,
+    "test_switches_selected": 281,
+    "test_switches_per_month_unpenalized": 34.65,
+    "test_switches_per_month_selected": 11.72,
+    "test_median_pm25_clean_state": 28.0,
+    "test_median_pm25_smog_state": 112.0,
+    "carried_vs_rolling_test": [
+      {
+        "window": 7,
+        "carried_switches": 281,
+        "rolling_switches": 471,
+        "extra_rolling_switches": 190,
+        "disagreement_rate": 0.0932648401826484,
+        "saturation_horizon_est": 9
+      },
+      {
+        "window": 15,
+        "carried_switches": 281,
+        "rolling_switches": 353,
+        "extra_rolling_switches": 72,
+        "disagreement_rate": 0.040125570776255705,
+        "saturation_horizon_est": 9
+      },
+      {
+        "window": 24,
+        "carried_switches": 281,
+        "rolling_switches": 299,
+        "extra_rolling_switches": 18,
+        "disagreement_rate": 0.014440639269406393,
+        "saturation_horizon_est": 9
+      },
+      {
+        "window": 72,
+        "carried_switches": 281,
+        "rolling_switches": 281,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0005707762557077625,
+        "saturation_horizon_est": 9
+      },
+      {
+        "window": 168,
+        "carried_switches": 281,
+        "rolling_switches": 281,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 9
+      },
+      {
+        "window": 336,
+        "carried_switches": 281,
+        "rolling_switches": 281,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 9
+      }
+    ]
+  },
+  {
+    "domain": "FRED CBOE VIX Volatility Stress Monitor (1990\u20132026)",
+    "train_rows": 4265,
+    "test_rows": 5038,
+    "delay_budget": "3 trading days",
+    "loss_scale": 1.5516,
+    "selected_eta": 3.0,
+    "selected_lambda": 4.6548,
+    "guaranteed_worst_delay_days": 3,
+    "test_switches_unpenalized": 259,
+    "test_switches_selected": 65,
+    "test_switches_per_year_unpenalized": 12.96,
+    "test_switches_per_year_selected": 3.25,
+    "test_median_vix_calm_state": 13.5,
+    "test_median_vix_stress_state": 19.1,
+    "carried_vs_rolling_test": [
+      {
+        "window": 7,
+        "carried_switches": 65,
+        "rolling_switches": 111,
+        "extra_rolling_switches": 46,
+        "disagreement_rate": 0.07225089321159191,
+        "saturation_horizon_est": 6
+      },
+      {
+        "window": 15,
+        "carried_switches": 65,
+        "rolling_switches": 77,
+        "extra_rolling_switches": 12,
+        "disagreement_rate": 0.03453751488685986,
+        "saturation_horizon_est": 6
+      },
+      {
+        "window": 31,
+        "carried_switches": 65,
+        "rolling_switches": 63,
+        "extra_rolling_switches": -2,
+        "disagreement_rate": 0.010321556173084558,
+        "saturation_horizon_est": 6
+      },
+      {
+        "window": 63,
+        "carried_switches": 65,
+        "rolling_switches": 65,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 6
+      },
+      {
+        "window": 126,
+        "carried_switches": 65,
+        "rolling_switches": 65,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 6
+      },
+      {
+        "window": 252,
+        "carried_switches": 65,
+        "rolling_switches": 65,
+        "extra_rolling_switches": 0,
+        "disagreement_rate": 0.0,
+        "saturation_horizon_est": 6
+      }
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+domain,train_rows,test_rows,delay_budget,selected_eta,selected_lambda,unpenalized_switches,selected_switches,switch_reduction_pct
+UCI Building Occupancy Sensors (1-min),8143,12417,5 minutes,4.0,20.3766,54,14,74.1
+Beijing Hourly Air-Quality Sensors (2010–2014),26275,17520,4 hours,4.0,11.1428,831,281,66.2
+FRED CBOE VIX Volatility Stress Monitor (1990–2026),4265,5038,3 trading days,3.0,4.6548,259,65,74.9
